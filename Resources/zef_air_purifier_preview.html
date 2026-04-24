@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CO₂ Room Concentration Model — ZEF</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --zef-red-deep:#D91F27;
+  --zef-red:#EC2727;
+  --zef-red-soft:#F46A63;
+  --zef-red-mist:#FCE9E9;
+  --zef-rose:#F6CFCF;
+  --zef-charcoal:#05181F;
+  --zef-slate:#4E565C;
+  --zef-silver:#A1A7AE;
+  --zef-fog:#ECEFF2;
+  --zef-cloud:#F7F8FA;
+  --zef-white:#FFFFFF;
+  --bg:linear-gradient(180deg,#f4f5f7 0%,#eceff2 100%);
+  --border:#dde2e8;
+  --border-strong:#c8ced7;
+  --text:#1f2329;
+  --text-mid:#404852;
+  --text-dim:#606975;
+  --text-muted:#7e8794;
+  --green:#2c8c63;
+  --green-light:#e5f5ee;
+  --blue:#4a6ea8;
+  --radius:18px;
+  --shadow-sm:0 6px 20px rgba(35,39,46,.06);
+  --shadow-md:0 16px 36px rgba(35,39,46,.10);
+}
+html{font-size:15px}
+body{
+  font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(217,31,39,.08), transparent 24%),
+    radial-gradient(circle at 90% 0%, rgba(5,24,31,.06), transparent 20%),
+    radial-gradient(circle at 100% 100%, rgba(78,86,92,.08), transparent 28%);
+}
+.app{max-width:1460px;margin:0 auto;padding:28px 24px 52px;position:relative}
+.header{
+  display:flex;align-items:center;gap:16px;margin-bottom:28px;
+  padding:18px 20px;border:1px solid rgba(255,255,255,.55);border-radius:22px;
+  background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(246,247,249,.82));
+  backdrop-filter:blur(14px);box-shadow:var(--shadow-md);
+}
+.logo-img{height:58px;object-fit:contain;filter:drop-shadow(0 8px 20px rgba(5,24,31,.10)) saturate(1.02) contrast(1.02)}
+.header-divider{width:1px;height:36px;background:linear-gradient(180deg,transparent,var(--border-strong),transparent);margin:0 6px}
+.header h1{font-size:1.55rem;font-weight:500;color:var(--text);letter-spacing:-.03em}
+.header h1 em{font-style:normal;color:var(--zef-red-deep)}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.header-badge{
+  background:linear-gradient(135deg,var(--zef-charcoal),#24343b 45%,var(--zef-red-deep));color:white;
+  padding:9px 16px;border-radius:999px;font-size:.74rem;font-weight:700;
+  letter-spacing:.10em;text-transform:uppercase;box-shadow:0 14px 30px rgba(5,24,31,.16);
+}
+.grid{display:grid;grid-template-columns:340px 1fr;gap:22px}
+@media(max-width:960px){.grid{grid-template-columns:1fr}}
+.panel{
+  background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(250,251,252,.90));
+  border:1px solid rgba(255,255,255,.72);border-radius:var(--radius);
+  padding:22px;box-shadow:var(--shadow-sm);backdrop-filter:blur(12px);
+}
+.panel-title{
+  font-size:.76rem;font-weight:800;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--zef-red-deep);margin-bottom:18px;display:flex;align-items:center;gap:10px;
+}
+.panel-title::before{
+  content:'';width:5px;height:18px;border-radius:999px;
+  background:linear-gradient(180deg,var(--zef-red-deep),var(--zef-red-soft));
+  box-shadow:0 0 0 4px rgba(217,31,39,.08);
+}
+.control-group{margin-bottom:20px}
+.control-group:last-child{margin-bottom:0}
+.control-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;gap:12px}
+.control-label span:first-child{font-size:.94rem;font-weight:600;color:var(--text-mid)}
+.control-value{
+  font-family:'JetBrains Mono',monospace;font-size:.84rem;font-weight:700;
+  color:var(--zef-red-deep);background:linear-gradient(180deg,var(--zef-red-mist),#fff);
+  padding:6px 10px;border-radius:8px;min-width:78px;text-align:right;border:1px solid rgba(217,31,39,.12);
+}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:10px;
+  background:linear-gradient(90deg,#d9dee5 0%,#eef1f4 100%);border-radius:999px;outline:none;cursor:pointer;
+  border:1px solid rgba(201,206,215,.7);
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+  background:linear-gradient(180deg,var(--zef-red-soft),var(--zef-red-deep));border:3px solid white;cursor:pointer;
+  box-shadow:0 8px 20px rgba(217,31,39,.24),0 0 0 1px rgba(217,31,39,.2);transition:transform .15s,box-shadow .15s;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.12);box-shadow:0 10px 24px rgba(217,31,39,.28),0 0 0 1px rgba(217,31,39,.28)}
+input[type=range]::-moz-range-thumb{
+  width:22px;height:22px;border-radius:50%;background:linear-gradient(180deg,var(--zef-red-soft),var(--zef-red-deep));
+  border:3px solid white;cursor:pointer;
+}
+.right-col{display:flex;flex-direction:column;gap:18px}
+.room-viz-container{
+  position:relative;height:460px;overflow:hidden;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,rgba(255,255,255,.98) 0%,rgba(241,243,246,.94) 55%,rgba(246,207,207,.22) 100%);
+  border-radius:22px;
+}
+.room-viz-container::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at top right, rgba(236,39,39,.10), transparent 30%), radial-gradient(circle at bottom left, rgba(5,24,31,.12), transparent 34%);
+  pointer-events:none;
+}
+.room-3d{position:relative;transform-style:preserve-3d;perspective:1100px;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
+.room-box{position:relative;transform-style:preserve-3d;transform:rotateX(-16deg) rotateY(-24deg);transition:width .35s,height .35s;filter:drop-shadow(0 18px 28px rgba(43,46,52,.14))}
+.room-face{position:absolute;border:1.5px solid;opacity:.96;transition:all .35s;border-radius:3px;backdrop-filter:blur(2px)}
+.face-front{background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(236,39,39,.08));border-color:rgba(236,39,39,.30)}
+.face-back{background:rgba(217,31,39,.03);border-color:rgba(217,31,39,.18)}
+.face-left{background:linear-gradient(90deg,rgba(78,86,92,.12),rgba(78,86,92,.04));border-color:rgba(78,86,92,.20)}
+.face-right{background:linear-gradient(90deg,rgba(244,106,99,.10),rgba(244,106,99,.03));border-color:rgba(244,106,99,.18)}
+.face-top{background:linear-gradient(180deg,rgba(255,255,255,.40),rgba(236,39,39,.06));border-color:rgba(217,31,39,.16)}
+.face-bottom{background:rgba(78,86,92,.08);border-color:rgba(78,86,92,.14)}
+.people-container{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:7px;align-items:flex-end;z-index:2;transition:all .3s}
+.person-icon{display:flex;flex-direction:column;align-items:center;animation:personAppear .4s ease-out both}
+@keyframes personAppear{from{opacity:0;transform:translateY(8px) scale(.7)}to{opacity:1;transform:translateY(0) scale(1)}}
+.person-head{width:14px;height:14px;border-radius:50%;background:var(--zef-charcoal);margin-bottom:3px;box-shadow:0 2px 8px rgba(43,46,52,.18)}
+.person-body{width:18px;height:28px;border-radius:4px 4px 2px 2px;background:linear-gradient(180deg,#f9f0f0,#ecd8d8);border:1.5px solid rgba(217,31,39,.65)}
+.device-icon{position:absolute;bottom:8px;right:18px;z-index:2;display:flex;flex-direction:column;align-items:center;gap:2px;transition:opacity .3s}
+.device-box{width:32px;height:38px;border-radius:8px;background:linear-gradient(180deg,var(--zef-charcoal),#3a3f48 55%,var(--zef-red-deep));border:1.5px solid rgba(255,255,255,.35);position:relative;box-shadow:0 12px 20px rgba(43,46,52,.20)}
+.device-box::before{content:'';position:absolute;top:6px;left:50%;transform:translateX(-50%);width:12px;height:6px;border-radius:4px;background:rgba(255,255,255,.55)}
+.device-box::after{content:'';position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:8px;height:4px;border-radius:2px;background:rgba(255,255,255,.28)}
+.device-label{font-size:.56rem;color:var(--zef-red-deep);font-weight:800;font-family:'JetBrains Mono',monospace;letter-spacing:.08em}
+.device-arrows{position:absolute;top:-14px;left:50%;transform:translateX(-50%);display:flex;gap:2px}
+.device-arrows span{display:block;width:3px;height:9px;background:var(--zef-red);border-radius:1px;animation:arrowPulse 1.2s ease-in-out infinite;opacity:.45}
+.device-arrows span:nth-child(2){animation-delay:.2s}.device-arrows span:nth-child(3){animation-delay:.4s}
+@keyframes arrowPulse{0%,100%{opacity:.18;transform:translateY(0)}50%{opacity:.95;transform:translateY(-3px)}}
+.volume-badge,.dims-badge{background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.75);box-shadow:var(--shadow-sm);backdrop-filter:blur(10px)}
+.volume-badge{position:absolute;top:16px;right:16px;border-radius:10px;padding:8px 13px;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--text-mid)}
+.volume-badge span{color:var(--zef-red-deep);font-weight:800}
+.dims-badge{position:absolute;bottom:16px;left:16px;font-family:'JetBrains Mono',monospace;font-size:.70rem;color:var(--text-muted);display:flex;gap:12px;padding:6px 11px;border-radius:8px}
+.dims-badge span{color:var(--text-mid);font-weight:700}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media(max-width:700px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:linear-gradient(180deg,rgba(255,255,255,.96),rgba(248,249,251,.92));border:1px solid rgba(255,255,255,.8);border-radius:var(--radius);padding:18px;text-align:center;position:relative;overflow:hidden;box-shadow:var(--shadow-sm);transition:box-shadow .2s,transform .2s}
+.stat-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--stat-color,var(--zef-red)),rgba(255,255,255,.75));border-radius:3px 3px 0 0}
+.stat-label{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-weight:700;margin-bottom:8px}
+.stat-value{font-size:1.82rem;font-weight:700;letter-spacing:-.04em;color:var(--text)}
+.stat-unit{font-size:.88rem;color:var(--text-dim);font-weight:500;margin-top:4px}
+.chart-panel{padding:0;overflow:hidden}
+.chart-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:20px 22px;border-bottom:1px solid var(--border)}
+.chart-title{font-size:1.08rem;font-weight:600;color:var(--text)}
+.chart-sub{font-size:.88rem;color:var(--text-dim);margin-top:5px}
+.chart-actions{display:flex;align-items:center;gap:10px}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.action-btn,.toggle-btn,.reset-btn{border:none;border-radius:12px;padding:12px 17px;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:10px;letter-spacing:.01em}
+.action-btn{background:linear-gradient(135deg,var(--zef-red-deep),var(--zef-red));color:#fff;box-shadow:0 12px 24px rgba(217,31,39,.22)}
+.action-btn:hover{transform:translateY(-1px);box-shadow:0 16px 28px rgba(217,31,39,.28)}
+.action-btn.active{background:linear-gradient(135deg,var(--zef-charcoal),#24343b 45%,var(--zef-red-deep))}
+.toggle-btn{background:linear-gradient(180deg,#fff,#f7f8fa);color:var(--zef-red-deep);font-family:'Inter',sans-serif;border:1px solid rgba(217,31,39,.12);box-shadow:var(--shadow-sm)}
+.toggle-btn.active{background:linear-gradient(180deg,var(--zef-red-mist),#fff);border-color:rgba(217,31,39,.25)}
+.reset-btn{padding:12px 22px;border-radius:12px;border:1px solid rgba(168,173,183,.4);background:linear-gradient(180deg,#fff,#f5f7f9);color:var(--text-dim);font-family:'Inter',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:var(--shadow-sm)}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor;box-shadow:0 0 0 4px rgba(255,255,255,.18)}
+.chart-wrap{padding:18px 20px 10px}.chart-box{height:360px;background:#fff;border-radius:18px;border:1px solid var(--border);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
+.status-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:0 22px 20px;color:var(--text-dim);font-size:.9rem}
+.status-text{padding:7px 12px;border-radius:999px;background:#f2f4f7;border:1px solid var(--border)}
+.status-text.reached{background:var(--green-light);color:var(--green);border-color:#c9eadb}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="header">
+  <img src="data:image/png;base64,REPLACED_IN_DOWNLOADED_FILE" alt="ZEF" class="logo-img">
+  <div class="header-divider"></div>
+  <h1><em>CO₂</em> Room Concentration Model</h1>
+  <div class="header-right">
+    <div class="header-badge">Air Purifier</div>
+  </div>
+</div>
+
+<div class="grid">
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="panel">
+      <div class="panel-title">Room Dimensions</div>
+      <div class="control-group">
+        <div class="control-label"><span>Length</span><span class="control-value" id="v-length">7.0 m</span></div>
+        <input type="range" id="s-length" min="2" max="15" step="0.5" value="7">
+      </div>
+      <div class="control-group">
+        <div class="control-label"><span>Breadth</span><span class="control-value" id="v-breadth">5.5 m</span></div>
+        <input type="range" id="s-breadth" min="2" max="12" step="0.5" value="5.5">
+      </div>
+      <div class="control-group">
+        <div class="control-label"><span>Height</span><span class="control-value" id="v-height">3.2 m</span></div>
+        <input type="range" id="s-height" min="2" max="5" step="0.1" value="3.2">
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">CO₂ Conditions</div>
+      <div class="control-group">
+        <div class="control-label"><span>Initial CO₂</span><span class="control-value" id="v-initppm">2000 ppm</span></div>
+        <input type="range" id="s-initppm" min="400" max="5000" step="50" value="2000">
+      </div>
+      <div class="control-group">
+        <div class="control-label"><span>Target CO₂</span><span class="control-value" id="v-targetppm">500 ppm</span></div>
+        <input type="range" id="s-targetppm" min="400" max="3000" step="50" value="500">
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Occupancy &amp; Emissions</div>
+      <div class="control-group">
+        <div class="control-label"><span>People in Room</span><span class="control-value" id="v-people">2</span></div>
+        <input type="range" id="s-people" min="0" max="20" step="1" value="2">
+      </div>
+      <div class="control-group">
+        <div class="control-label"><span>CO₂ per Person</span><span class="control-value" id="v-emission">40 g/hr</span></div>
+        <input type="range" id="s-emission" min="10" max="100" step="1" value="40">
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">DAC Capture Device</div>
+      <div class="control-group">
+        <div class="control-label"><span>Capture Rate</span><span class="control-value" id="v-capture">200 g/hr</span></div>
+        <input type="range" id="s-capture" min="10" max="1000" step="10" value="200">
+      </div>
+      <div style="margin-top:14px" class="btn-row">
+        <button class="toggle-btn" id="btn-device" onclick="toggleDevice()"><span class="dot"></span> Device OFF</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="right-col">
+    <div class="panel" style="padding:0;overflow:hidden">
+      <div class="room-viz-container" id="room-viz-container">
+        <div id="co2-overlay" style="position:absolute;inset:0;pointer-events:none"></div>
+        <div class="volume-badge">Volume <span id="vol-display">123.2</span> m³</div>
+        <div class="dims-badge"><div>L <span id="dim-l">7.0</span> m</div><div>B <span id="dim-b">5.5</span> m</div><div>H <span id="dim-h">3.2</span> m</div></div>
+        <div class="room-3d">
+          <div class="room-box" id="room-box">
+            <div class="room-face face-front" id="face-front"></div>
+            <div class="room-face face-back" id="face-back"></div>
+            <div class="room-face face-left" id="face-left"></div>
+            <div class="room-face face-right" id="face-right"></div>
+            <div class="room-face face-top" id="face-top"></div>
+            <div class="room-face face-bottom" id="face-bottom"></div>
+            <div class="people-container" id="people-container"></div>
+            <div class="device-icon" id="device-icon">
+              <div class="device-arrows"><span></span><span></span><span></span></div>
+              <div class="device-box"></div>
+              <div class="device-label">DAC</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card" style="--stat-color:var(--zef-red)"><div class="stat-label">Net CO₂ Rate</div><div class="stat-value"><span id="stat-netrate">+80</span></div><div class="stat-unit">g/hr</div></div>
+      <div class="stat-card" style="--stat-color:var(--zef-charcoal)"><div class="stat-label">Current CO₂</div><div class="stat-value"><span id="stat-current">2000</span></div><div class="stat-unit">ppm</div></div>
+      <div class="stat-card" style="--stat-color:var(--green)"><div class="stat-label">Steady / Floor</div><div class="stat-value"><span id="stat-steady">∞</span></div><div class="stat-unit">ppm</div></div>
+      <div class="stat-card" style="--stat-color:var(--blue)"><div class="stat-label">Time to Target</div><div class="stat-value"><span id="stat-time">—</span></div><div class="stat-unit" id="stat-time-unit">rising</div></div>
+    </div>
+
+    <div class="panel chart-panel">
+      <div class="chart-head">
+        <div>
+          <div class="chart-title">CO₂ Concentration Over Time</div>
+          <div class="chart-sub">Run the simulation to see the concentration path and target reach time.</div>
+        </div>
+        <div class="chart-actions btn-row">
+          <button class="action-btn" id="btn-sim" onclick="startSimulation()"><span class="dot"></span> Run Simulation</button>
+          <button class="reset-btn" onclick="resetSimulation()">Reset</button>
+        </div>
+      </div>
+      <div class="chart-wrap"><div class="chart-box"><canvas id="graph-canvas"></canvas></div></div>
+      <div class="status-row"><div class="status-text" id="status-text">Ready</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+let deviceOn=false,simRunning=false,animFrame=null,lastSimulation=null;
+const CO2_DENSITY=1.977;
+const sliders={
+  length:document.getElementById('s-length'),breadth:document.getElementById('s-breadth'),
+  height:document.getElementById('s-height'),initppm:document.getElementById('s-initppm'),
+  targetppm:document.getElementById('s-targetppm'),people:document.getElementById('s-people'),
+  emission:document.getElementById('s-emission'),capture:document.getElementById('s-capture'),
+};
+const vals={
+  length:document.getElementById('v-length'),breadth:document.getElementById('v-breadth'),
+  height:document.getElementById('v-height'),initppm:document.getElementById('v-initppm'),
+  targetppm:document.getElementById('v-targetppm'),people:document.getElementById('v-people'),
+  emission:document.getElementById('v-emission'),capture:document.getElementById('v-capture'),
+};
+function getParams(){
+  return{
+    L:parseFloat(sliders.length.value),B:parseFloat(sliders.breadth.value),
+    H:parseFloat(sliders.height.value),initPPM:parseFloat(sliders.initppm.value),
+    targetPPM:parseFloat(sliders.targetppm.value),people:parseInt(sliders.people.value),
+    emissionRate:parseFloat(sliders.emission.value),captureRate:parseFloat(sliders.capture.value),
+  };
+}
+function updateRoomViz(){
+  const p=getParams();
+  const wrap=document.getElementById('room-viz-container').getBoundingClientRect();
+  const maxW=Math.max(p.L,2),maxH=Math.max(p.H,2),maxD=Math.max(p.B,2);
+  const scale=Math.min((wrap.width-180)/(maxW+maxD*0.8),(wrap.height-110)/(maxH+maxD*0.55));
+  const base=Math.max(scale,26);
+  const w=p.L*base,h=p.H*base,d=p.B*base*0.9;
+  const box=document.getElementById('room-box');
+  box.style.width=w+'px';box.style.height=h+'px';
+  const f=document.getElementById('face-front');
+  f.style.width=w+'px';f.style.height=h+'px';f.style.transform=`translateZ(${d/2}px)`;
+  const b=document.getElementById('face-back');
+  b.style.width=w+'px';b.style.height=h+'px';b.style.transform=`translateZ(${-d/2}px)`;
+  const l=document.getElementById('face-left');
+  l.style.width=d+'px';l.style.height=h+'px';l.style.transform='rotateY(90deg)';l.style.left=-d/2+'px';
+  const r=document.getElementById('face-right');
+  r.style.width=d+'px';r.style.height=h+'px';r.style.transform='rotateY(-90deg)';r.style.right=-d/2+'px';
+  const t=document.getElementById('face-top');
+  t.style.width=w+'px';t.style.height=d+'px';t.style.transform='rotateX(90deg)';t.style.top=-d/2+'px';
+  const bt=document.getElementById('face-bottom');
+  bt.style.width=w+'px';bt.style.height=d+'px';bt.style.transform='rotateX(-90deg)';bt.style.bottom=-d/2+'px';
+}
+function updatePeople(){
+  const n=parseInt(sliders.people.value),c=document.getElementById('people-container');
+  c.innerHTML='';
+  for(let i=0;i<Math.min(n,20);i++){
+    const p=document.createElement('div');p.className='person-icon';
+    p.style.animationDelay=(i*.05)+'s';
+    p.innerHTML='<div class="person-head"></div><div class="person-body"></div>';
+    c.appendChild(p);
+  }
+}
+function updateDevice(){
+  const icon=document.getElementById('device-icon'),btn=document.getElementById('btn-device');
+  if(deviceOn){icon.style.opacity='1';btn.classList.add('active');btn.innerHTML='<span class="dot"></span> Device ON';}
+  else{icon.style.opacity='0.3';btn.classList.remove('active');btn.innerHTML='<span class="dot"></span> Device OFF';}
+}
+function toggleDevice(){deviceOn=!deviceOn;updateDevice();updateStats();drawCurrentGraph();}
+function updateCO2Haze(ppm){
+  const o=document.getElementById('co2-overlay'),i=Math.min((ppm-400)/4600,1);
+  o.style.background=`radial-gradient(ellipse at center,rgba(217,31,39,${i*.08}) 0%,rgba(236,39,39,${i*.05}) 40%,transparent 70%)`;
+}
+function updateStats(){
+  const p=getParams(),volM3=p.L*p.B*p.H,volL=volM3*1000;
+  document.getElementById('vol-display').textContent=volM3.toFixed(1);
+  document.getElementById('dim-l').textContent=p.L.toFix

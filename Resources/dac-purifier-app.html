@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DAC Air Purifier — Interactive Model</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
+  <script src="https://unpkg.com/recharts@2/umd/Recharts.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body, #root {
+      height: 100%;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .app-header {
+      background: #0f172a;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    .header-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-badge {
+      background: #0ea5e9;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .brand-text {
+      color: #f8fafc;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-sub {
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 400;
+      margin-left: 4px;
+    }
+
+    .app-nav {
+      display: flex;
+      background: #1e293b;
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .nav-btn:hover {
+      color: #e2e8f0;
+      background: #334155;
+    }
+
+    .nav-btn--active {
+      background: #0ea5e9;
+      color: #fff;
+    }
+
+    .nav-btn--active:hover {
+      background: #0284c7;
+      color: #fff;
+    }
+
+    .page {
+      padding: 24px;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .page-layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .control-panel {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      padding: 20px;
+      position: sticky;
+      top: 84px;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .control-panel::-webkit-scrollbar { width: 4px; }
+    .control-panel::-webkit-scrollbar-track { background: #f1f5f9; }
+    .control-panel::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+
+    .main-area {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      padding: 20px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title-icon {
+      width: 20px;
+      height: 20px;
+      background: #f0f9ff;
+      border-radius: 5px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #94a3b8;
+      margin-bottom: 10px;
+    }
+
+    /* Sliders */
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .slider-input {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .slider-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #475569;
+    }
+
+    .slider-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: #e2e8f0;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #0ea5e9;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px #0ea5e9;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    .slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+    .slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #0ea5e9;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1px #0ea5e9;
+      cursor: pointer;
+    }
+
+    .slider-minmax {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #94a3b8;
+    }
+
+    .derived-value {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #475569;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2px;
+    }
+
+    .derived-value strong {
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    /* Mode selector */
+    .mode-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .mode-card {
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: #fff;
+    }
+
+    .mode-card:hover {
+      border-color: #7dd3fc;
+      background: #f0f9ff;
+    }
+
+    .mode-card--active {
+      border-color: #0ea5e9;
+      background: #f0f9ff;
+      box-shadow: 0 0 0 1px #0ea5e9;
+    }
+
+    .mode-card-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .mode-card-detail {
+      font-size: 10px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    .mode-card--active .mode-card-label {
+      color: #0284c7;
+    }
+
+    /* Custom mode inputs */
+    .custom-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+      padding: 10px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .inline-input-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .inline-input-label {
+      font-size: 12px;
+      color: #475569;
+      font-weight: 500;
+    }
+
+    .number-input {
+      width: 80px;
+      padding: 5px 8px;
+      border: 1px solid #d1d5db;
+      border-radius: 5px;
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      color: #0f172a;
+      outline: none;
+      text-align: right;
+    }
+
+    .number-input:focus {
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 2px #e0f2fe;
+    }
+
+    /* Stat cards */
+    .stat-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stat-card--highlight {
+      border-color: #0ea5e9;
+      background: #f0f9ff;
+    }
+
+    .stat-card--warning {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .stat-card--positive {
+      border-color: #10b981;
+      background: #f0fdf4;
+    }
+
+    .stat-card-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #94a3b8;
+    }
+
+    .stat-card-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1.1;
+    }
+
+    .stat-card-unit {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 1px;
+    }
+
+    .stat-card--highlight .stat-card-value { color: #0284c7; }
+    .stat-card--warning .stat-card-value { color: #b45309; }
+    .stat-card--positive .stat-card-value { color: #047857; }
+
+    /* Chart tabs */
+    .chart-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      padding: 3px;
+    }
+
+    .chart-tab {
+      flex: 1;
+      background: transparent;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: #64748b;
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .chart-tab:hover { color: #0f172a; }
+
+    .chart-tab--active {
+      background: #fff;
+      color: #0f172a;
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+
+    /* Buttons */
+    .btn--primary {
+      background: #0ea5e9;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 9px 20px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn--primary:hover { background: #0284c7; }
+    .btn--primary:active { transform: scale(0.98); }
+
+    .btn--primary:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn--secondary {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      border-radius: 7px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 9px 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn--secondary:hover {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    /* Alerts */
+    .alert--warning {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #92400e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .alert--info {
+      background: #f0f9ff;
+      border: 1px solid #7dd3fc;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #075985;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Room SVG card */
+    .room-svg-wrapper {
+      width: 100%;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Comparison summary */
+    .comparison-summary {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .comparison-card {
+      flex: 1;
+      min-width: 140px;
+      border-radius: 8px;
+      padding: 12px 14px;
+      border: 1.5px solid transparent;
+    }
+
+    .comparison-card--sleep {
+      background: #f0fdf4;
+      border-color: #86efac;
+    }
+
+    .comparison-card--standard {
+      background: #f0f9ff;
+      border-color: #7dd3fc;
+    }
+
+    .comparison-card--turbo {
+      background: #fdf4ff;
+      border-color: #e9d5ff;
+    }
+
+    .comparison-card-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .comparison-card--sleep .comparison-card-label { color: #15803d; }
+    .comparison-card--standard .comparison-card-label { color: #0284c7; }
+    .comparison-card--turbo .comparison-card-label { color: #7c3aed; }
+
+    .comparison-card-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .comparison-card-sub {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    /* Mode table */
+    .mode-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .mode-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #94a3b8;
+      padding: 8px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      background: #f8fafc;
+    }
+
+    .mode-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .mode-table tr:last-child td { border-bottom: none; }
+
+    .mode-table tr:hover td { background: #f8fafc; }
+
+    .mode-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .mode-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* Interpretation grid */
+    .interpretation-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .interp-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+
+    .interp-card-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .interp-card-text {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    /* Formula display */
+    .formula-box {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #e2e8f0;
+      line-height: 1.6;
+    }
+
+    .formula-highlight {
+      color: #38bdf8;
+      font-weight: bold;
+    }
+
+    .formula-result {
+      color: #4ade80;
+      font-weight: bold;
+    }
+
+    /* Model notes */
+    .model-notes {
+      font-size: 11px;
+      color: #94a3b8;
+      line-height: 1.6;
+      padding-top: 8px;
+      border-top: 1px solid #f1f5f9;
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: #f1f5f9;
+      margin: 4px 0;
+    }
+
+    /* Scrollbar for main */
+    .main-scroll {
+      overflow-y: auto;
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 900px) {
+      .page-layout {
+        grid-template-columns: 1fr;
+      }
+      .control-panel {
+        position: static;
+        max-height: none;
+      }
+    }
+
+    /* Recharts customization */
+    .recharts-default-tooltip {
+      border-radius: 8px !important;
+      border: 1px solid #e2e8f0 !important;
+      font-size: 12px !important;
+      font-family: 'Inter', sans-serif !important;
+    }
+
+    /* Animation pulse for running */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .running-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #0ea5e9;
+      animation: pulse 1.2s infinite;
+    }
+
+    .running-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #0ea5e9;
+    }
+
+    /* Divider line in header */
+    .header-divider {
+      width: 1px;
+      height: 24px;
+      background: #334155;
+      margin: 0 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useMemo, useEffect, useRef, useCallback } = React;
+    const {
+      LineChart, Line, AreaChart, Area,
+      XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+      ReferenceLine, ResponsiveContainer
+    } = window.Recharts;
+
+    // ─── Constants ───────────────────────────────────────────────
+    const CO2_DENSITY = 1800; // g/m³
+
+    const MODE_PRESETS = [
+      { id: 'sleep',    label: 'Sleep / Low', airflow: 100,  capture: 30  },
+      { id: 'standard', label: 'Standard',    airflow: 300,  capture: 100 },
+      { id: 'turbo',    label: 'Turbo',       airflow: 800,  capture: 300 },
+      { id: 'custom',   label: 'Custom',      airflow: null, capture: null },
+    ];
+
+    const MODE_COLORS = {
+      sleep:    '#10b981',
+      standard: '#0ea5e9',
+      turbo:    '#8b5cf6',
+      custom:   '#f59e0b',
+    };
+
+    // ─── Physics helpers ─────────────────────────────────────────
+    function calcCaptureRate(airflowM3PerH, deltaPpm) {
+      return airflowM3PerH * Math.max(0, deltaPpm) * 1e-6 * CO2_DENSITY;
+    }
+
+    function impliedDeltaPpm(captureRateGPerH, airflowM3PerH) {
+      return airflowM3PerH > 0 ? captureRateGPerH / (airflowM3PerH * 1e-6 * CO2_DENSITY) : 0;
+    }
+
+    function runSimulation({ volumeM3, initialPpm, targetPpm, peopleCount, emissionPerPerson, captureRateGPerH, maxHours = 8, dtMinutes = 1 }) {
+      const dtHours = dtMinutes / 60;
+      const genGPerH = peopleCount * emissionPerPerson;
+      const netRateGPerH = genGPerH - captureRateGPerH;
+      const isPpmIncreasing = netRateGPerH > 0;
+      const totalSteps = Math.ceil(maxHours * 60 / dtMinutes);
+
+      const data = [];
+      let ppm = initialPpm;
+      let targetReached = false;
+      let timeToTargetMin = null;
+      let stepsAfterTarget = 0;
+
+      for (let step = 0; step <= totalSteps; step++) {
+        const timeMin = step * dtMinutes;
+        data.push({ timeMin, ppm: Math.round(ppm * 10) / 10 });
+
+        if (!targetReached) {
+          if ((!isPpmIncreasing && ppm <= targetPpm) || (isPpmIncreasing && ppm >= targetPpm)) {
+            targetReached = true;
+            timeToTargetMin = timeMin;
+          }
+        } else {
+          stepsAfterTarget++;
+          if (stepsAfterTarget >= 30) break;
+        }
+
+        // Euler step
+        const dppmDt = netRateGPerH / (volumeM3 * 1e-6 * CO2_DENSITY);
+        ppm = Math.max(0, ppm + dppmDt * dtHours);
+      }
+
+      const steadyStatePpm = captureRateGPerH >= genGPerH ? 420 : Infinity;
+      return {
+        data,
+        targetReached,
+        timeToTargetMin,
+        finalPpm: data[data.length - 1].ppm,
+        steadyStatePpm,
+        netRateGPerH,
+        isPpmIncreasing,
+      };
+    }
+
+    function formatMinutes(min) {
+      if (min === null || min === undefined) return '—';
+      if (min < 60) return `${Math.round(min)} min`;
+      const h = Math.floor(min / 60);
+      const m = Math.round(min % 60);
+      return m > 0 ? `${h}h ${m}m` : `${h}h`;
+    }
+
+    function fmt(n, dec = 0) {
+      if (n === null || n === undefined || !isFinite(n)) return '—';
+      return n.toFixed(dec);
+    }
+
+    // ─── SliderInput component ────────────────────────────────────
+    function SliderInput({ label, value, min, max, step = 1, unit = '', onChange, valueDisplay }) {
+      const display = valueDisplay !== undefined ? valueDisplay : `${value}${unit ? ' ' + unit : ''}`;
+      return (
+        <div className="slider-input">
+          <div className="slider-header">
+            <span className="slider-label">{label}</span>
+            <span className="slider-value">{display}</span>
+          </div>
+          <input
+            type="range"
+            className="slider"
+            min={min} max={max} step={step}
+            value={value}
+            onChange={e => onChange(Number(e.target.value))}
+          />
+          <div className="slider-minmax">
+            <span>{min}{unit}</span>
+            <span>{max}{unit}</span>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Room SVG ─────────────────────────────────────────────────
+    function RoomSVG({ length, width, height, people, currentPpm }) {
+      const W = 400, H = 260;
+      // Isometric projection helpers
+      const isoX = (x, y) => W * 0.5 + (x - y) * 0.55 * 50;
+      const isoY = (x, y, z) => H * 0.62 - (x + y) * 0.28 * 50 - z * 0.5 * 40;
+
+      // Scale factor (normalize to a standard 6×4×3 room)
+      const sx = Math.min(length / 6, 2.2);
+      const sy = Math.min(width / 4, 2.2);
+      const sz = Math.min(height / 3, 2.0);
+      const scale = Math.min(sx, sy, sz, 1.4);
+
+      const roomL = 5 * scale;
+      const roomW = 3.5 * scale;
+      const roomH = 3 * scale;
+
+      // Isometric room corners (floor)
+      // Front-left = (0,0,0), Front-right=(L,0,0), Back-right=(L,W,0), Back-left=(0,W,0)
+      // Scale factors for isometric projection
+      const iso = (x, y, z) => ({
+        x: W * 0.5 + (x - y) * 45 * scale,
+        y: H * 0.75 - (x + y) * 22 * scale - z * 60 * scale,
+      });
+
+      const pts = [
+        iso(0, 0, 0), iso(roomL, 0, 0), iso(roomL, roomW, 0), iso(0, roomW, 0),
+        iso(0, 0, roomH), iso(roomL, 0, roomH), iso(roomL, roomW, roomH), iso(0, roomW, roomH),
+      ];
+
+      const poly = (indices, fill, stroke = '#94a3b8', opacity = 1, sw = 1) => {
+        const d = indices.map((i, idx) => `${idx === 0 ? 'M' : 'L'}${pts[i].x.toFixed(1)},${pts[i].y.toFixed(1)}`).join(' ') + ' Z';
+        return <path d={d} fill={fill} stroke={stroke} strokeWidth={sw} opacity={opacity} />;
+      };
+
+      // Haze intensity from ppm
+      const hazeOpacity = Math.min((currentPpm - 400) / 4600, 1) * 0.38;
+      const hazeColor = currentPpm > 1500 ? '#ef4444' : currentPpm > 1000 ? '#f59e0b' : '#22c55e';
+
+      // People stick figures (up to 12 shown)
+      const shownPeople = Math.min(people, 12);
+      const personFigs = [];
+      for (let i = 0; i < shownPeople; i++) {
+        const col = i % 4;
+        const row = Math.floor(i / 4);
+        const px = 0.6 + col * 0.9 * scale;
+        const py = 0.5 + row * 1.3 * scale;
+        const base = iso(Math.min(px, roomL - 0.4), Math.min(py, roomW - 0.4), 0);
+        const bx = base.x, by = base.y;
+        const s = 11 * scale;
+        personFigs.push(
+          <g key={i} opacity={0.85}>
+            <circle cx={bx} cy={by - s * 2.1} r={s * 0.52} fill="#fbbf24" stroke="#d97706" strokeWidth="0.8" />
+            <line x1={bx} y1={by - s * 1.55} x2={bx} y2={by - s * 0.3} stroke="#64748b" strokeWidth={s * 0.22} strokeLinecap="round" />
+            <line x1={bx - s * 0.5} y1={by - s * 1.2} x2={bx + s * 0.5} y2={by - s * 1.0} stroke="#64748b" strokeWidth={s * 0.18} strokeLinecap="round" />
+            <line x1={bx} y1={by - s * 0.3} x2={bx - s * 0.38} y2={by + s * 0.4} stroke="#64748b" strokeWidth={s * 0.2} strokeLinecap="round" />
+            <line x1={bx} y1={by - s * 0.3} x2={bx + s * 0.38} y2={by + s * 0.4} stroke="#64748b" strokeWidth={s * 0.2} strokeLinecap="round" />
+          </g>
+        );
+      }
+
+      // DAC unit in far corner
+      const dacBase = iso(roomL * 0.85, roomW * 0.8, 0);
+      const dacH = 0.55 * scale;
+      const dacTop = iso(roomL * 0.85, roomW * 0.8, dacH);
+
+      const dacColor = '#0ea5e9';
+
+      return (
+        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet" width="100%" style={{ maxHeight: 260 }}>
+          <defs>
+            <linearGradient id="floorGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="#f1f5f9" />
+              <stop offset="100%" stopColor="#e2e8f0" />
+            </linearGradient>
+            <linearGradient id="wallLGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#f8fafc" />
+              <stop offset="100%" stopColor="#e8eef5" />
+            </linearGradient>
+            <linearGradient id="wallRGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#edf2f7" />
+              <stop offset="100%" stopColor="#dde5ef" />
+            </linearGradient>
+          </defs>
+
+          {/* Floor */}
+          {poly([0, 1, 2, 3], 'url(#floorGrad)', '#cbd5e1', 1, 1)}
+
+          {/* Left wall */}
+          {poly([0, 4, 7, 3], 'url(#wallLGrad)', '#cbd5e1', 1, 1)}
+
+          {/* Right wall */}
+          {poly([1, 5, 6, 2], 'url(#wallRGrad)', '#cbd5e1', 0.7, 1)}
+
+          {/* Ceiling (semi-transparent) */}
+          {poly([4, 5, 6, 7], '#f8fafc', '#e2e8f0', 0.3, 1)}
+
+          {/* Haze overlay */}
+          {hazeOpacity > 0.01 && (
+            <g>
+              {poly([0, 1, 2, 3], hazeColor, 'none', hazeOpacity * 0.6, 0)}
+              {poly([0, 4, 7, 3], hazeColor, 'none', hazeOpacity * 0.45, 0)}
+              {poly([1, 5, 6, 2], hazeColor, 'none', hazeOpacity * 0.35, 0)}
+            </g>
+          )}
+
+          {/* Person figures */}
+          {personFigs}
+
+          {/* DAC unit */}
+          <rect
+            x={dacBase.x - 8 * scale} y={dacBase.y - 24 * scale}
+            width={16 * scale} height={22 * scale}
+            rx={3 * scale}
+            fill={dacColor} opacity={0.92}
+          />
+          <rect
+            x={dacBase.x - 6 * scale} y={dacBase.y - 21 * scale}
+            width={12 * scale} height={5 * scale}
+            rx={1.5 * scale}
+            fill="#e0f2fe" opacity={0.7}
+          />
+          {/* DAC airflow arrows */}
+          <line x1={dacBase.x} y1={dacBase.y - 28 * scale} x2={dacBase.x} y2={dacBase.y - 35 * scale}
+            stroke="#38bdf8" strokeWidth={1.5 * scale} opacity={0.8}
+            markerEnd="url(#arrowUp)"
+          />
+
+          {/* CO2 badge */}
+          <rect x={W - 80} y={8} width={70} height={32} rx={8} fill="#0f172a" opacity={0.85} />
+          <text x={W - 45} y={20} textAnchor="middle" fill="#94a3b8" fontSize="9" fontFamily="Inter, sans-serif" fontWeight="600">CO₂</text>
+          <text x={W - 45} y={34} textAnchor="middle" fill={currentPpm > 1500 ? '#f87171' : currentPpm > 1000 ? '#fbbf24' : '#4ade80'} fontSize="13" fontFamily="Inter, sans-serif" fontWeight="700">
+            {Math.round(currentPpm)}
+          </text>
+          <text x={W - 45} y={44} textAnchor="middle" fill="#64748b" fontSize="8" fontFamily="Inter, sans-serif">ppm</text>
+
+          {/* Dimension labels */}
+          <text x={W * 0.5} y={H - 6} textAnchor="middle" fill="#94a3b8" fontSize="10" fontFamily="Inter, sans-serif">
+            {length}m × {width}m × {height}m
+          </text>
+        </svg>
+      );
+    }
+
+    // ─── Page 1: CO2 Simulator ────────────────────────────────────
+    function SimulatorPage() {
+      const [roomL, setRoomL] = useState(8);
+      const [roomW, setRoomW] = useState(5);
+      const [roomH, setRoomH] = useState(3);
+      const [initialPpm, setInitialPpm] = useState(1500);
+      const [targetPpm, setTargetPpm] = useState(800);
+      const [peopleCount, setPeopleCount] = useState(4);
+      const [emissionPerPerson] = useState(20);
+      const [selectedMode, setSelectedMode] = useState('standard');
+      const [customAirflow, setCustomAirflow] = useState(400);
+      const [customCapture, setCustomCapture] = useState(150);
+      const [chartTab, setChartTab] = useState('selected');
+      const [animatedSteps, setAnimatedSteps] = useState(null);
+      const [isAnimating, setIsAnimating] = useState(false);
+      const animRef = useRef(null);
+      const animKey = useRef(0);
+
+      const volumeM3 = roomL * roomW * roomH;
+
+      const getCapture = (modeId) => {
+        const p = MODE_PRESETS.find(m => m.id === modeId);
+        return modeId === 'custom' ? customCapture : (p ? p.capture : 100);
+      };
+
+      const captureRateGPerH = getCapture(selectedMode);
+      const totalGenGPerH = peopleCount * emissionPerPerson;
+      const netRateGPerH = totalGenGPerH - captureRateGPerH;
+
+      const isValid = targetPpm < initialPpm;
+
+      const result = useMemo(() => {
+        if (!isValid) return null;
+        return runSimulation({
+          volumeM3, initialPpm, targetPpm, peopleCount,
+          emissionPerPerson, captureRateGPerH, maxHours: 8
+        });
+      }, [volumeM3, initialPpm, targetPpm, peopleCount, emissionPerPerson, captureRateGPerH, isValid]);
+
+      const comparisonResults = useMemo(() => {
+        if (!isValid) return null;
+        return MODE_PRESETS.filter(m => m.id !== 'custom').map(m => ({
+          ...m,
+          result: runSimulation({
+            volumeM3, initialPpm, targetPpm, peopleCount,
+            emissionPerPerson, captureRateGPerH: m.capture, maxHours: 8
+          })
+        }));
+      }, [volumeM3, initialPpm, targetPpm, peopleCount, emissionPerPerson, isValid]);
+
+      // Stop animation on input change
+      useEffect(() => {
+        stopAnimation();
+        setAnimatedSteps(null);
+      }, [volumeM3, initialPpm, targetPpm, peopleCount, captureRateGPerH]);
+
+      function stopAnimation() {
+        if (animRef.current) {
+          clearInterval(animRef.current);
+          animRef.current = null;
+        }
+        setIsAnimating(false);
+      }
+
+      function runAnimation() {
+        if (!result) return;
+        stopAnimation();
+        animKey.current++;
+        const myKey = animKey.current;
+        const totalPoints = result.data.length;
+        const durationMs = 3000;
+        const intervalMs = 30;
+        const stepsPerTick = Math.max(1, Math.ceil(totalPoints / (durationMs / intervalMs)));
+        let current = 1;
+        setAnimatedSteps(1);
+        setIsAnimating(true);
+
+        animRef.current = setInterval(() => {
+          if (animKey.current !== myKey) {
+            clearInterval(animRef.current);
+            return;
+          }
+          current = Math.min(current + stepsPerTick, totalPoints);
+          setAnimatedSteps(current);
+          if (current >= totalPoints) {
+            clearInterval(animRef.current);
+            animRef.current = null;
+            setIsAnimating(false);
+            setAnimatedSteps(null); // show full
+          }
+        }, intervalMs);
+      }
+
+      const displayedData = useMemo(() => {
+        if (!result) return [];
+        if (animatedSteps === null) return result.data;
+        return result.data.slice(0, animatedSteps);
+      }, [result, animatedSteps]);
+
+      // Current displayed ppm (last point in animation or full result)
+      const displayPpm = displayedData.length > 0
+        ? displayedData[displayedData.length - 1].ppm
+        : (result ? result.data[0].ppm : initialPpm);
+
+      const equilibriumPpm = result
+        ? (result.steadyStatePpm === Infinity ? '∞ (rising)' : `${result.steadyStatePpm} ppm`)
+        : '—';
+
+      return (
+        <div className="page-layout">
+          {/* ── Control Panel ── */}
+          <div className="control-panel">
+            <div>
+              <div className="section-label">Room Dimensions</div>
+              <div className="slider-group">
+                <SliderInput label="Length" value={roomL} min={3} max={30} unit="m" onChange={setRoomL} />
+                <SliderInput label="Width"  value={roomW} min={2} max={20} unit="m" onChange={setRoomW} />
+                <SliderInput label="Height" value={roomH} min={2} max={6}  unit="m" onChange={setRoomH} />
+              </div>
+              <div className="derived-value" style={{ marginTop: 8 }}>
+                <span>Room Volume</span>
+                <strong>{volumeM3} m³</strong>
+              </div>
+            </div>
+
+            <div className="divider" />
+
+            <div>
+              <div className="section-label">CO₂ Conditions</div>
+              <div className="slider-group">
+                <SliderInput label="Initial CO₂" value={initialPpm} min={400} max={5000} step={50} unit="ppm" onChange={v => { setInitialPpm(v); if (v <= targetPpm) setTargetPpm(Math.max(400, v - 100)); }} />
+                <SliderInput label="Target CO₂"  value={targetPpm}  min={400} max={2000} step={50} unit="ppm" onChange={v => setTargetPpm(v)} />
+              </div>
+              {!isValid && (
+                <div className="alert--warning" style={{ marginTop: 8 }}>
+                  <span>⚠</span> Target must be less than initial CO₂.
+                </div>
+              )}
+            </div>
+
+            <div className="divider" />
+
+            <div>
+              <div className="section-label">Occupancy</div>
+              <SliderInput label="People" value={peopleCount} min={0} max={50} onChange={setPeopleCount} />
+              <div className="derived-value" style={{ marginTop: 8 }}>
+                <span>Total CO₂ Generation</span>
+                <strong>{totalGenGPerH} g/h</strong>
+              </div>
+            </div>
+
+            <div className="divider" />
+
+            <div>
+              <div className="section-label">DAC Mode</div>
+              <div className="mode-selector">
+                {MODE_PRESETS.map(m => (
+                  <div
+                    key={m.id}
+                    className={`mode-card${selectedMode === m.id ? ' mode-card--active' : ''}`}
+                    onClick={() => setSelectedMode(m.id)}
+                  >
+                    <div className="mode-card-label">{m.label}</div>
+                    {m.id !== 'custom' ? (
+                      <div className="mode-card-detail">
+                        {m.capture} g/h capture<br/>
+                        {m.airflow} m³/h airflow
+                      </div>
+                    ) : (
+                      <div className="mode-card-detail">User-defined<br/>settings</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {selectedMode === 'custom' && (
+                <div className="custom-inputs">
+                  <div className="inline-input-row">
+                    <span className="inline-input-label">Airflow (m³/h)</span>
+                    <input className="number-input" type="number" min={50} max={1200} value={customAirflow}
+                      onChange={e => setCustomAirflow(Math.max(0, Number(e.target.value)))} />
+                  </div>
+                  <div className="inline-input-row">
+                    <span className="inline-input-label">Capture (g/h)</span>
+                    <input className="number-input" type="number" min={0} max={1000} value={customCapture}
+                      onChange={e => setCustomCapture(Math.max(0, Number(e.target.value)))} />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── Main Area ── */}
+          <div className="main-area">
+            {/* Room visualization */}
+            <div className="card">
+              <div className="card-title">
+                <span className="card-title-icon">🏠</span>
+                Room Visualization
+              </div>
+              <div className="room-svg-wrapper">
+                <RoomSVG
+                  length={roomL} width={roomW} height={roomH}
+                  people={peopleCount}
+                  currentPpm={displayPpm}
+                />
+              </div>
+            </div>
+
+            {/* Stat cards */}
+            <div className="stat-cards">
+              <div className="stat-card">
+                <div className="stat-card-label">Room Volume</div>
+                <div className="stat-card-value">{volumeM3}</div>
+                <div className="stat-card-unit">m³</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-card-label">Initial CO₂</div>
+                <div className="stat-card-value">{initialPpm}</div>
+                <div className="stat-card-unit">ppm</div>
+              </div>
+              <div className={`stat-card${isValid ? ' stat-card--highlight' : ' stat-card--warning'}`}>
+                <div className="stat-card-label">Target CO₂</div>
+                <div className="stat-card-value">{targetPpm}</div>
+                <div className="stat-card-unit">ppm</div>
+              </div>
+              <div className={`stat-card${netRateGPerH > 0 ? ' stat-card--warning' : ' stat-card--positive'}`}>
+                <div className="stat-card-label">Net Rate</div>
+                <div className="stat-card-value">{netRateGPerH > 0 ? '+' : ''}{fmt(netRateGPerH, 0)}</div>
+                <div className="stat-card-unit">g/h</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-card-label">Generation</div>
+                <div className="stat-card-value">{fmt(totalGenGPerH, 0)}</div>
+                <div className="stat-card-unit">g/h</div>
+              </div>
+              <div className="stat-card stat-card--highlight">
+                <div className="stat-card-label">DAC Capture</div>
+                <div className="stat-card-value">{fmt(captureRateGPerH, 0)}</div>
+                <div className="stat-card-unit">g/h</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-card-label">Time to Target</div>
+                <div className="stat-card-value" style={{ fontSize: 15 }}>
+                  {isValid && result ? (result.targetReached ? formatMinutes(result.timeToTargetMin) : '>8h') : '—'}
+                </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-card-label">Equilibrium Floor</div>
+                <div className="stat-card-value" style={{ fontSize: 14 }}>{equilibriumPpm}</div>
+              </div>
+            </div>
+
+            {/* Chart area */}
+            {isValid && result && (
+              <div className="card">
+                <div className="chart-tabs">
+                  <button className={`chart-tab${chartTab === 'selected' ? ' chart-tab--active' : ''}`}
+                    onClick={() => setChartTab('selected')}>Selected Mode</button>
+                  <button className={`chart-tab${chartTab === 'comparison' ? ' chart-tab--active' : ''}`}
+                    onClick={() => setChartTab('comparison')}>Mode Comparison</button>
+                </div>
+
+                {chartTab === 'selected' && (
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                      <div>
+                        <div className="card-title" style={{ marginBottom: 2 }}>
+                          CO₂ ppm Over Time — {MODE_PRESETS.find(m => m.id === selectedMode)?.label}
+                        </div>
+                        <div style={{ fontSize: 12, color: '#64748b' }}>
+                          Simulation with {peopleCount} {peopleCount === 1 ? 'person' : 'people'} &middot; {volumeM3} m³ room
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        {isAnimating && (
+                          <span className="running-indicator">
+                            <span className="running-dot" />
+                            Simulating…
+                          </span>
+                        )}
+                        <button className="btn--primary" onClick={runAnimation} disabled={isAnimating}>
+                          ▶ Run Simulation
+                        </button>
+                        {animatedSteps !== null && !isAnimating && (
+                          <button className="btn--secondary" onClick={() => { stopAnimation(); setAnimatedSteps(null); }}>
+                            Reset
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={displayedData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis
+                          dataKey="timeMin"
+                          label={{ value: 'Time (minutes)', position: 'insideBottom', offset: -4, fontSize: 11, fill: '#94a3b8' }}
+                          tick={{ fontSize: 11, fill: '#94a3b8' }}
+                        />
+                        <YAxis
+                          domain={['auto', 'auto']}
+                          label={{ value: 'CO₂ (ppm)', angle: -90, position: 'insideLeft', offset: 10, fontSize: 11, fill: '#94a3b8' }}
+                          tick={{ fontSize: 11, fill: '#94a3b8' }}
+                          width={55}
+                        />
+                        <Tooltip
+                          formatter={(v) => [`${v} ppm`, 'CO₂']}
+                          labelFormatter={(l) => `${l} min`}
+                          contentStyle={{ fontSize: 12, fontFamily: 'Inter', borderRadius: 8, border: '1px solid #e2e8f0' }}
+                        />
+                        <ReferenceLine
+                          y={targetPpm}
+                          stroke="#22c55e"
+                          strokeDasharray="6 3"
+                          label={{ value: `Target: ${targetPpm} ppm`, position: 'insideTopRight', fontSize: 11, fill: '#16a34a' }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="ppm"
+                          stroke={MODE_COLORS[selectedMode]}
+                          strokeWidth={2.5}
+                          dot={false}
+                          isAnimationActive={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {chartTab === 'comparison' && comparisonResults && (
+                  <div>
+                    <div className="card-title" style={{ marginBottom: 14 }}>
+                      Mode Comparison — CO₂ ppm Over Time
+                    </div>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis
+                          dataKey="timeMin"
+                          type="number"
+                          domain={['auto', 'auto']}
+                          label={{ value: 'Time (minutes)', position: 'insideBottom', offset: -4, fontSize: 11, fill: '#94a3b8' }}
+                          tick={{ fontSize: 11, fill: '#94a3b8' }}
+                        />
+                        <YAxis
+                          domain={['auto', 'auto']}
+                          label={{ value: 'CO₂ (ppm)', angle: -90, position: 'insideLeft', offset: 10, fontSize: 11, fill: '#94a3b8' }}
+                          tick={{ fontSize: 11, fill: '#94a3b8' }}
+                          width={55}
+                        />
+                        <Tooltip
+                          formatter={(v, name) => [`${v} ppm`, name]}
+                          labelFormatter={(l) => `${l} min`}
+                          contentStyle={{ fontSize: 12, fontFamily: 'Inter', borderRadius: 8, border: '1px solid #e2e8f0' }}
+                        />
+                        <ReferenceLine
+                          y={targetPpm}
+                          stroke="#22c55e"
+                          strokeDasharray="6 3"
+                          label={{ value: `Target: ${targetPpm}`, position: 'insideTopRight', fontSize: 10, fill: '#16a34a' }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: 12, fontFamily: 'Inter' }} />
+                        {comparisonResults.map(m => (
+                          <Line
+                            key={m.id}
+                            data={m.result.data}
+                            type="monotone"
+                            dataKey="ppm"
+                            name={m.label}
+                            stroke={MODE_COLORS[m.id]}
+                            strokeWidth={2}
+                            dot={false}
+                            isAnimationActive={false}
+                          />
+                        ))}
+                      </LineChart>
+                    </ResponsiveContainer>
+
+                    <div className="comparison-summary" style={{ marginTop: 16 }}>
+                      {comparisonResults.map(m => (
+                        <div key={m.id} className={`comparison-card comparison-card--${m.id}`}>
+                          <div className="comparison-card-label" style={{ color: MODE_COLORS[m.id] }}>{m.label}</div>
+                          <div className="comparison-card-value">
+                            {m.result.targetReached ? formatMinutes(m.result.timeToTargetMin) : '>8h'}
+                          </div>
+                          <div className="comparison-card-sub">to reach {targetPpm} ppm</div>
+                          <div className="comparison-card-sub" style={{ marginTop: 4 }}>
+                            Capture: {m.capture} g/h
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!isValid && (
+              <div className="alert--warning">
+                <span>⚠</span> Set a valid target CO₂ below the initial level to run the simulation.
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // ─── Page 2: DAC Performance ─────────────────────────────────
+    function PerformancePage() {
+      const [selectedMode, setSelectedMode] = useState('standard');
+      const [airflow, setAirflow] = useState(300);
+      const [inletPpm, setInletPpm] = useState(1000);
+      const [outletPpm, setOutletPpm] = useState(400);
+      const [chartTab, setChartTab] = useState('vs-airflow');
+
+      // Sync mode → sliders
+      function selectMode(modeId) {
+        setSelectedMode(modeId);
+        const p = MODE_PRESETS.find(m => m.id === modeId);
+        if (p && p.id !== 'custom') {
+          setAirflow(p.airflow);
+          const delta = impliedDeltaPpm(p.capture, p.airflow);
+          const impliedOutlet = Math.max(0, inletPpm - delta);
+          setOutletPpm(Math.round(impliedOutlet));
+        }
+      }
+
+      const deltaPpm = Math.max(0, inletPpm - outletPpm);
+      const captureRate = calcCaptureRate(airflow, deltaPpm);
+
+      const isOutletValid = outletPpm <= inletPpm;
+
+      // Chart data: capture vs airflow
+      const vsAirflowData = useMemo(() => {
+        const data = [];
+        for (let af = 0; af <= 1000; af += 20) {
+          data.push({ airflow: af, capture: calcCaptureRate(af, deltaPpm) });
+        }
+        return data;
+      }, [deltaPpm]);
+
+      // Chart data: capture vs inlet ppm
+      const vsInletData = useMemo(() => {
+        const data = [];
+        for (let ppm = 400; ppm <= 5000; ppm += 50) {
+          const delta = Math.max(0, ppm - outletPpm);
+          data.push({ inlet: ppm, capture: calcCaptureRate(airflow, delta) });
+        }
+        return data;
+      }, [airflow, outletPpm]);
+
+      // Mode comparison table rows
+      const tableRows = useMemo(() => {
+        return MODE_PRESETS.filter(m => m.id !== 'custom').map(m => {
+          const delta = impliedDeltaPpm(m.capture, m.airflow);
+          const impliedOutlet = Math.max(0, inletPpm - delta);
+          return {
+            ...m,
+            delta: Math.round(delta),
+            impliedOutlet: Math.round(impliedOutlet),
+            captureAtMode: m.capture,
+          };
+        });
+      }, [inletPpm]);
+
+      return (
+        <div className="page-layout">
+          {/* ── Control Panel ── */}
+          <div className="control-panel">
+            <div>
+              <div className="section-label">DAC Mode</div>
+              <div className="mode-selector">
+                {MODE_PRESETS.map(m => (
+                  <div
+                    key={m.id}
+                    className={`mode-card${selectedMode === m.id ? ' mode-card--active' : ''}`}
+                    onClick={() => selectMode(m.id)}
+                  >
+                    <div className="mode-card-label">{m.label}</div>
+                    {m.id !== 'custom' ? (
+                      <div className="mode-card-detail">
+                        {m.capture} g/h capture<br/>
+                        {m.airflow} m³/h airflow
+                      </div>
+                    ) : (
+                      <div className="mode-card-detail">Freely adjustable<br/>sliders below</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="divider" />
+
+            <div className="slider-group">
+              <div className="section-label">Operating Parameters</div>
+              <SliderInput
+                label="Airflow"
+                value={airflow} min={50} max={1200} step={10} unit="m³/h"
+                onChange={v => { setAirflow(v); setSelectedMode('custom'); }}
+              />
+              <SliderInput
+                label="Inlet CO₂"
+                value={inletPpm} min={400} max={5000} step={50} unit="ppm"
+                onChange={v => { setInletPpm(v); if (outletPpm > v) setOutletPpm(v); }}
+              />
+              <SliderInput
+                label="Outlet CO₂"
+                value={outletPpm} min={0} max={inletPpm} step={50} unit="ppm"
+                onChange={v => { setOutletPpm(v); setSelectedMode('custom'); }}
+              />
+              {!isOutletValid && (
+                <div className="alert--warning">
+                  <span>⚠</span> Outlet ppm must be ≤ inlet ppm.
+                </div>
+              )}
+            </div>
+
+            <div className="divider" />
+
+            <div>
+              <div className="section-label">Live Formula</div>
+              <div className="formula-box">
+                <span>capture =</span><br/>
+                <span className="formula-highlight">  {airflow}</span> m³/h<br/>
+                <span>  × </span><span className="formula-highlight">{deltaPpm}</span> ppm<br/>
+                <span>  × 1.8×10⁻³</span><br/>
+                <span className="formula-result">= {fmt(captureRate, 1)} g/h</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Main Area ── */}
+          <div className="main-area">
+            {/* Stat cards */}
+            <div className="stat-cards">
+              <div className="stat-card stat-card--highlight">
+                <div className="stat-card-label">Airflow</div>
+                <div className="stat-card-value">{airflow}</div>
+                <div className="stat-card-unit">m³/h</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-card-label">Inlet CO₂</div>
+                <div className="stat-card-value">{inletPpm}</div>
+                <div className="stat-card-unit">ppm</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-card-label">Outlet CO₂</div>
+                <div className="stat-card-value">{outletPpm}</div>
+                <div className="stat-card-unit">ppm</div>
+              </div>
+              <div className="stat-card stat-card--highlight">
+                <div className="stat-card-label">Delta CO₂</div>
+                <div className="stat-card-value">{deltaPpm}</div>
+                <div className="stat-card-unit">ppm removed</div>
+              </div>
+              <div className="stat-card stat-card--positive">
+                <div className="stat-card-label">Capture Rate</div>
+                <div className="stat-card-value">{fmt(captureRate, 1)}</div>
+                <div className="stat-card-unit">g/h</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-card-label">Selected Mode</div>
+                <div className="stat-card-value" style={{ fontSize: 14 }}>
+                  {MODE_PRESETS.find(m => m.id === selectedMode)?.label}
+                </div>
+              </div>
+            </div>
+
+            {/* Charts */}
+            <div className="card">
+              <div className="chart-tabs">
+                <button className={`chart-tab${chartTab === 'vs-airflow' ? ' chart-tab--active' : ''}`}
+                  onClick={() => setChartTab('vs-airflow')}>Capture vs Airflow</button>
+                <button className={`chart-tab${chartTab === 'vs-inlet' ? ' chart-tab--active' : ''}`}
+                  onClick={() => setChartTab('vs-inlet')}>Capture vs Inlet CO₂</button>
+              </div>
+
+              {chartTab === 'vs-airflow' && (
+                <div>
+                  <div className="card-title" style={{ marginBottom: 4 }}>
+                    Capture Rate vs Airflow
+                  </div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginBottom: 14 }}>
+                    At current delta CO₂ of <strong>{deltaPpm} ppm</strong>. Reference lines show preset modes.
+                  </div>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={vsAirflowData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+                      <defs>
+                        <linearGradient id="captureGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis
+                        dataKey="airflow"
+                        label={{ value: 'Airflow (m³/h)', position: 'insideBottom', offset: -4, fontSize: 11, fill: '#94a3b8' }}
+                        tick={{ fontSize: 11, fill: '#94a3b8' }}
+                      />
+                      <YAxis
+                        label={{ value: 'Capture (g/h)', angle: -90, position: 'insideLeft', offset: 10, fontSize: 11, fill: '#94a3b8' }}
+                        tick={{ fontSize: 11, fill: '#94a3b8' }}
+                        width={55}
+                      />
+                      <Tooltip
+                        formatter={(v) => [`${v.toFixed(1)} g/h`, 'Capture']}
+                        labelFormatter={(l) => `Airflow: ${l} m³/h`}
+                        contentStyle={{ fontSize: 12, fontFamily: 'Inter', borderRadius: 8, border: '1px solid #e2e8f0' }}
+                      />
+                      <ReferenceLine x={100}  stroke={MODE_COLORS.sleep}    strokeDasharray="4 3" label={{ value: 'Sleep', position: 'top', fontSize: 10, fill: MODE_COLORS.sleep }} />
+                      <ReferenceLine x={300}  stroke={MODE_COLORS.standard} strokeDasharray="4 3" label={{ value: 'Std',   position: 'top', fontSize: 10, fill: MODE_COLORS.standard }} />
+                      <ReferenceLine x={800}  stroke={MODE_COLORS.turbo}    strokeDasharray="4 3" label={{ value: 'Turbo', position: 'top', fontSize: 10, fill: MODE_COLORS.turbo }} />
+                      <ReferenceLine x={airflow} stroke="#f59e0b" strokeWidth={2} label={{ value: 'Current', position: 'insideTopRight', fontSize: 10, fill: '#b45309' }} />
+                      <Area
+                        type="monotone"
+                        dataKey="capture"
+                        stroke="#0ea5e9"
+                        strokeWidth={2.5}
+                        fill="url(#captureGrad)"
+                        dot={false}
+                        isAnimationActive={false}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {chartTab === 'vs-inlet' && (
+                <div>
+                  <div className="card-title" style={{ marginBottom: 4 }}>
+                    Capture Rate vs Inlet CO₂
+                  </div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginBottom: 14 }}>
+                    At airflow <strong>{airflow} m³/h</strong>, outlet fixed at <strong>{outletPpm} ppm</strong>.
+                  </div>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={vsInletData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+                      <defs>
+                        <linearGradient id="captureGrad2" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.25} />
+                          <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis
+                        dataKey="inlet"
+                        label={{ value: 'Inlet CO₂ (ppm)', position: 'insideBottom', offset: -4, fontSize: 11, fill: '#94a3b8' }}
+                        tick={{ fontSize: 11, fill: '#94a3b8' }}
+                      />
+                      <YAxis
+                        label={{ value: 'Capture (g/h)', angle: -90, position: 'insideLeft', offset: 10, fontSize: 11, fill: '#94a3b8' }}
+                        tick={{ fontSize: 11, fill: '#94a3b8' }}
+                        width={55}
+                      />
+                      <Tooltip
+                        formatter={(v) => [`${v.toFixed(1)} g/h`, 'Capture']}
+                        labelFormatter={(l) => `Inlet: ${l} ppm`}
+                        contentStyle={{ fontSize: 12, fontFamily: 'Inter', borderRadius: 8, border: '1px solid #e2e8f0' }}
+                      />
+                      <ReferenceLine x={inletPpm} stroke="#f59e0b" strokeWidth={2} label={{ value: 'Current', position: 'insideTopRight', fontSize: 10, fill: '#b45309' }} />
+                      <Area
+                        type="monotone"
+                        dataKey="capture"
+                        stroke="#8b5cf6"
+                        strokeWidth={2.5}
+                        fill="url(#captureGrad2)"
+                        dot={false}
+                        isAnimationActive={false}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+            </div>
+
+            {/* Mode comparison table */}
+            <div className="card">
+              <div className="card-title">
+                <span className="card-title-icon">📊</span>
+                Mode Comparison Table
+                <span style={{ fontSize: 12, fontWeight: 400, color: '#94a3b8', marginLeft: 4 }}>
+                  at inlet {inletPpm} ppm
+                </span>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table className="mode-table">
+                  <thead>
+                    <tr>
+                      <th>Mode</th>
+                      <th>Airflow (m³/h)</th>
+                      <th>Capture (g/h)</th>
+                      <th>Implied Δ ppm</th>
+                      <th>Implied Outlet (ppm)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tableRows.map(m => (
+                      <tr key={m.id}>
+                        <td>
+                          <span className="mode-badge">
+                            <span className="mode-dot" style={{ background: MODE_COLORS[m.id] }} />
+                            {m.label}
+                          </span>
+                        </td>
+                        <td>{m.airflow}</td>
+                        <td><strong>{m.captureAtMode}</strong></td>
+                        <td>{m.delta}</td>
+                        <td style={{ color: m.impliedOutlet < 0 ? '#ef4444' : '#374151' }}>
+                          {m.impliedOutlet < 0 ? '< 0 (full capture)' : m.impliedOutlet}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Interpretation panel */}
+            <div className="card">
+              <div className="card-title">
+                <span className="card-title-icon">💡</span>
+                Key Insights
+              </div>
+              <div className="interpretation-grid">
+                <div className="interp-card">
+                  <div className="interp-card-title">
+                    <span>↑</span> Higher Inlet = More Capture
+                  </div>
+                  <div className="interp-card-text">
+                    With a fixed outlet target, dirtier air produces a larger concentration delta — directly increasing the mass of CO₂ captured per hour.
+                  </div>
+                </div>
+                <div className="interp-card">
+                  <div className="interp-card-title">
+                    <span>↑</span> Higher Airflow = More Capture
+                  </div>
+                  <div className="interp-card-text">
+                    At a constant delta ppm, doubling the airflow doubles the volumetric throughput and thus the capture rate. Fan speed is a primary lever.
+                  </div>
+                </div>
+                <div className="interp-card">
+                  <div className="interp-card-title">
+                    <span>⬇</span> Deeper Removal = More Capture
+                  </div>
+                  <div className="interp-card-text">
+                    A lower outlet ppm (closer to zero) maximises delta and capture per unit of airflow — but requires a higher-efficiency sorbent or longer contact time.
+                  </div>
+                </div>
+                <div className="interp-card">
+                  <div className="interp-card-title">
+                    <span>⇄</span> Airflow vs Removal Depth
+                  </div>
+                  <div className="interp-card-text">
+                    Airflow and removal depth are often in tension: faster air throughput may reduce contact time and raise outlet ppm. Optimal operation balances both.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Model notes */}
+            <div className="card">
+              <div className="model-notes">
+                <strong style={{ color: '#64748b' }}>Model Notes:</strong> Capture rate is computed as:
+                capture [g/h] = airflow [m³/h] × Δ[CO₂] [ppm] × 1×10⁻⁶ × 1800 [g/m³].
+                CO₂ density assumed 1800 g/m³ at standard conditions (25 °C, 1 atm).
+                This is a simplified mass-balance model for conceptual and procurement planning purposes.
+                Real-world performance depends on sorbent efficiency, temperature, humidity, and unit design.
+                Simulations assume well-mixed room air, constant occupancy, and steady DAC capture rate.
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ─── App Root ────────────────────────────────────────────────
+    function App() {
+      const [page, setPage] = useState('simulator');
+
+      return (
+        <div className="app">
+          <header className="app-header">
+            <div className="header-inner">
+              <div className="brand">
+                <span className="brand-badge">DAC</span>
+                <span className="brand-text">
+                  Air Purifier
+                  <span className="brand-sub">Interactive Model</span>
+                </span>
+              </div>
+              <nav className="app-nav">
+                <button
+                  className={`nav-btn${page === 'simulator' ? ' nav-btn--active' : ''}`}
+                  onClick={() => setPage('simulator')}
+                >
+                  Room CO₂ Simulator
+                </button>
+                <button
+                  className={`nav-btn${page === 'performance' ? ' nav-btn--active' : ''}`}
+                  onClick={() => setPage('performance')}
+                >
+                  DAC Performance
+                </button>
+              </nav>
+            </div>
+          </header>
+
+          <main style={{ flex: 1 }}>
+            <div className="page">
+              {page === 'simulator'   && <SimulatorPage />}
+              {page === 'performance' && <PerformancePage />}
+            </div>
+          </main>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
