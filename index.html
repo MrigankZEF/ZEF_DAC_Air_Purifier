@@ -398,6 +398,8 @@
        No ventilation term (v2, per VISION.md).
        ========================================================= */
 
+    const LOGO_SRC = 'data:image/png;base64,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';
+
     const M_CO2 = 44.01;
     const AIR_MOL_PER_M3 = 41.57;
     const GRAMS_PER_PPM_M3 = 1.8e-3;
@@ -1048,7 +1050,7 @@
           <aside className="panel">
             <div className="panel-head">
               <div className="brand">
-                <div className="brand-mark" />
+                <img src={LOGO_SRC} alt="ZEF" style={{ width: 22, height: 22, objectFit: 'contain', display: 'block' }} />
                 <div>
                   <div className="brand-title">ZEF DAC</div>
                   <div className="brand-sub">AIR PURIFIER · ROOM SIM</div>
@@ -1126,6 +1128,18 @@
                   {headerPlates}×{wiresPerPlate}×{fmt(wireLen, 2)} = {fmt(totalWire, 1)} <span style={{ color: 'var(--ink-3)' }}>m</span>
                 </span>
               </div>
+              {(() => {
+                const pkgH = wireLen + 0.1;
+                const pkgW = (0.4 / 160) * wiresPerPlate;
+                const pkgB = headerPlates * 0.01;
+                const pkgVol_L = pkgH * pkgW * pkgB * 1000;
+                return (
+                  <div className="derived">
+                    <span className="derived-l">Package vol.</span>
+                    <span className="derived-v">{fmt(pkgVol_L, 1)} <span style={{ color: 'var(--ink-3)' }}>L</span></span>
+                  </div>
+                );
+              })()}
             </Group>
 
             <Group title="Fan" index="05">
