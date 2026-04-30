@@ -359,8 +359,8 @@
     .chart-grid { stroke: var(--hair); stroke-width: 1; }
     .chart-axis { stroke: var(--hair-strong); stroke-width: 1; }
     .chart-line-main { fill: none; stroke: var(--ink); stroke-width: 1.5; }
-    .chart-line-baseline { fill: none; stroke: var(--warm); stroke-width: 1.25; stroke-dasharray: 2 3; }
-    .chart-target { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 3 4; }
+    .chart-line-baseline { fill: none; stroke: var(--accent); stroke-width: 1.25; stroke-dasharray: 2 3; }
+    .chart-target { stroke: var(--warm); stroke-width: 1; stroke-dasharray: 3 4; }
     .chart-label { font-family: var(--font-mono); font-size: 10px; fill: var(--ink-3); font-variant-numeric: tabular-nums; }
     .chart-tick { stroke: var(--hair); stroke-width: 1; }
 
@@ -738,7 +738,7 @@
 
           {/* target */}
           <line className="chart-target" x1={pad.l} x2={w - pad.r} y1={y(c_target)} y2={y(c_target)} />
-          <text className="chart-label" x={w - pad.r - 2} y={y(c_target) - 4} textAnchor="end" fill="var(--accent)">TARGET {c_target} ppm</text>
+          <text className="chart-label" x={w - pad.r - 2} y={y(c_target) - 4} textAnchor="end" fill="var(--ink-3)">TARGET {c_target} ppm</text>
 
           {/* baseline (machine off) */}
           <path className="chart-line-baseline" d={linePath(baseline)} />
@@ -1217,8 +1217,8 @@
                 <div className="chart-card-title">PPM · OVER TIME</div>
                 <div className="chart-card-legend">
                   <span className="legend-item"><span className="legend-swatch" /> This run</span>
-                  <span className="legend-item"><span className="legend-swatch warm" /> Machine off</span>
-                  <span className="legend-item"><span style={{ width: 14, borderTop: '1px dashed #E4002B', display: 'inline-block' }} /> Target</span>
+                  <span className="legend-item"><span className="legend-swatch" style={{ background: 'var(--accent)' }} /> Machine off</span>
+                  <span className="legend-item"><span style={{ width: 14, borderTop: '1px dashed var(--warm)', display: 'inline-block' }} /> Target</span>
                 </div>
               </div>
               <PPMChart series={result.series} baseline={result.baseline} c_target={cTarget} c_amb={cAmb} width={960} height={260} />
