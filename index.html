@@ -475,6 +475,7 @@
       let c_room = p.c0_ppm;
       let prevCout = null; // warm-start for inner loop
       let timeToTarget = null;
+      let totalCapturedG = 0;
 
       for (let i = 0; i <= steps; i++) {
         const t_min = i * p.dt_min;
@@ -503,6 +504,7 @@
           if (p.c0_ppm > p.c_target_ppm && c_room <= p.c_target_ppm) timeToTarget = t_min;
           if (p.c0_ppm < p.c_target_ppm && c_room >= p.c_target_ppm) timeToTarget = t_min;
         }
+        totalCapturedG += capture_g_h * dt_h;
         const net_g_h = gen_g_h - capture_g_h;
         const dcdt = net_g_h / (V * GRAMS_PER_PPM_M3);
         c_room = Math.max(0, c_room + dcdt * dt_h);
@@ -519,6 +521,7 @@
         series, baseline,
         V, totalWire, airMolH, genGH: gen_g_h,
         timeToTargetMin: timeToTarget,
+        totalCapturedG,
         initial: series[0],
       };
     }
@@ -1220,6 +1223,42 @@
               </div>
               <PPMChart series={result.series} baseline={result.baseline} c_target={cTarget} c_amb={cAmb} width={960} height={260} />
             </section>
+
+            {/* ── DRAWDOWN BRIEF ── */}
+            {(() => {
+              const co2InRoom_g   = c0 * V * GRAMS_PER_PPM_M3;
+              const co2ToRemove_g = Math.max(0, c0 - cTarget) * V * GRAMS_PER_PPM_M3;
+              const genLoad_g_h   = people * perPerson;
+              const col = { flex: '1 1 0', padding: '12px 18px', borderRight: '1px solid var(--hair)' };
+              const colLast = { flex: '1 1 0', padding: '12px 18px' };
+              const lbl = { fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.10em', textTransform: 'uppercase', color: 'var(--ink-3)', display: 'block', marginBottom: 5 };
+              const val = { fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 500, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', color: 'var(--ink)', display: 'block' };
+              const sub = { fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--ink-3)', display: 'block', marginTop: 3 };
+              return (
+                <div style={{ display: 'flex', background: 'var(--bg)', border: '1px solid var(--hair)', borderRadius: 6, overflow: 'hidden' }}>
+                  <div style={col}>
+                    <span style={lbl}>CO₂ in room now</span>
+                    <span style={val}>{fmt(co2InRoom_g, 0)} <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--ink-3)', fontWeight: 400 }}>g</span></span>
+                    <span style={sub}>at {c0} ppm · {fmt(V, 1)} m³</span>
+                  </div>
+                  <div style={col}>
+                    <span style={lbl}>CO₂ to extract</span>
+                    <span style={val}>{fmt(co2ToRemove_g, 0)} <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--ink-3)', fontWeight: 400 }}>g</span></span>
+                    <span style={sub}>{c0} → {cTarget} ppm drawdown</span>
+                  </div>
+                  <div style={col}>
+                    <span style={lbl}>Generation load</span>
+                    <span style={val}>{fmt(genLoad_g_h, 0)} <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--ink-3)', fontWeight: 400 }}>g/h</span></span>
+                    <span style={sub}>{people} pax × {perPerson} g/h, ongoing</span>
+                  </div>
+                  <div style={colLast}>
+                    <span style={lbl}>Total extracted · {hours} h sim</span>
+                    <span style={val}>{fmt(result.totalCapturedG, 0)} <span style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--ink-3)', fontWeight: 400 }}>g</span></span>
+                    <span style={sub}>∫ capture dt over {formatMin(hours * 60)}</span>
+                  </div>
+                </div>
+              );
+            })()}
 
             <section className="room-card">
               <div>
